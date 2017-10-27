@@ -21,8 +21,12 @@ public class SimpleDraw extends SurfaceView
 
     private SurfaceHolder mHolder;
     private Canvas mCanvas;
+    //正在绘图标志位
     private boolean mIsDrawing;
+    //清屏标志位
     private boolean mIsClearScreen;
+    //第一次执行的标志位，不设置的话，刚开View是黑色的，因为canvas没进行绘制。
+    private boolean mIsFirst;
     private Path mPath;
     private Paint mPaint;
 
@@ -58,6 +62,7 @@ public class SimpleDraw extends SurfaceView
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         mIsDrawing = true;
+        mIsFirst=true;
         new Thread(this).start();
         Log.d("zhangyan","surfaceCreated");
 
@@ -90,6 +95,10 @@ public class SimpleDraw extends SurfaceView
                 }
             }
             Log.d("zhangyan", "draw");
+            if (mIsFirst) {
+                mIsDrawing = false;
+                mIsFirst = false;
+            }
 
         }
 
@@ -100,10 +109,11 @@ public class SimpleDraw extends SurfaceView
             mCanvas = mHolder.lockCanvas();
             //清除canvas的操作
             while (mIsClearScreen) {
-                mCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
+                mCanvas.drawColor(0, PorterDuff.Mode.CLEAR);//主要靠这句代码，清除canvas之前绘制的内容。
                 mPath.close();
                 mPath = new Path();
                 mIsClearScreen = false;
+                mIsDrawing=false;
             }
             mCanvas.drawColor(Color.WHITE);
             mCanvas.drawPath(mPath, mPaint);
@@ -121,11 +131,14 @@ public class SimpleDraw extends SurfaceView
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 mPath.moveTo(x, y);
+                mIsDrawing = true;//当手指按下的时候，才开启线程进行绘制
+                new Thread(this).start();
                 break;
             case MotionEvent.ACTION_MOVE:
                 mPath.lineTo(x, y);
                 break;
             case MotionEvent.ACTION_UP:
+                mIsDrawing = false;//手指离开屏幕，终止绘制线程
                 break;
         }
         return true;
@@ -134,5 +147,7 @@ public class SimpleDraw extends SurfaceView
 
     public void setClearScreen(boolean clearScreen) {
         mIsClearScreen = clearScreen;
+        mIsDrawing = true;
+        new Thread(this).start();
     }
 }
