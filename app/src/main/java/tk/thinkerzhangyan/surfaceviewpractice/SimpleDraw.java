@@ -95,6 +95,8 @@ public class SimpleDraw extends SurfaceView
                 }
             }
             Log.d("zhangyan", "draw");
+            //canvas初始化绘制完成后，将mIsDrawing设置为false，终止绘制线程，之后只有在手指接触屏幕进行绘制的时候才会重新开启线程进行绘制，达到优化的目的。
+            //同时将mIsFirst设置为false，这样后面执行绘制操作的时候，不会再执行if中的代码。
             if (mIsFirst) {
                 mIsDrawing = false;
                 mIsFirst = false;
